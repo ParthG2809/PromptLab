@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: rgba(15, 15, 15, 0.9);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: #ffffff;
+        }
+        .content {
+            padding: 40px;
+            text-align: center;
+        }
+        .otp-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+        .otp-code {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            color: #3b82f6;
+            margin: 0;
+        }
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #a1a1aa;
+            margin-bottom: 24px;
+        }
+        .footer {
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-size: 12px;
+            color: #52525b;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .highlight {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PROMPTLAB</h1>
+        </div>
+        <div class="content">
+            <h2 style="color: #ffffff; margin-bottom: 16px;">Verify Your Identity</h2>
+            <p class="message">
+                Hello,<br>
+                Use the following verification code to complete your <span class="highlight">{{ purpose_text }}</span>. 
+                This code is valid for <span class="highlight">5 minutes</span>.
+            </p>
+            <div class="otp-box">
+                <p class="otp-code">{{ otp }}</p>
+            </div>
+            <p class="message" style="font-size: 14px;">
+                If you didn't request this code, you can safely ignore this email.
+            </p>
+        </div>
+        <div class="footer">
+            &copy; 2026 PromptLab AI. Powered by Advanced Intelligence.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1795 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptLab | AI Prompt Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+
+            /* Dark Theme (Default) */
+            --bg-primary: #050505;
+            --bg-secondary: rgba(15, 15, 15, 0.7);
+            --text-main: #ffffff;
+            --text-dim: #a1a1aa;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --nav-bg: rgba(5, 5, 5, 0.8);
+            --modal-bg: rgba(5, 5, 5, 0.95);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-main: #0f172a;
+            --text-dim: #334155;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(15, 23, 42, 0.15);
+            --card-border: rgba(15, 23, 42, 0.1);
+            --input-bg: #f1f5f9;
+            --nav-bg: #ffffff;
+            --modal-bg: #ffffff;
+            --shadow-premium: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+            --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        }
+
+        :root {
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.6);
+            --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .font-display {
+            font-family: var(--font-display);
+        }
+
+        /* Discussion Typography Optimization */
+        .comment-username {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            /* Increased */
+            font-weight: 800;
+            letter-spacing: 0.075em;
+            text-transform: uppercase;
+        }
+
+        .comment-content {
+            font-size: 1rem;
+            /* Increased from 14px to 16px */
+            line-height: 1.625;
+            letter-spacing: -0.005em;
+            color: var(--text-main);
+            font-weight: 400;
+        }
+
+        .comment-meta {
+            font-size: 0.75rem;
+            /* Increased */
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            color: var(--text-dim);
+        }
+
+        .mention-tag {
+            font-weight: 700;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .glass-card {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .active-card {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--text-dim) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bg-white\/5 {
+            background-color: var(--input-bg) !important;
+        }
+
+        .text-white {
+            color: var(--text-main) !important;
+        }
+
+        .text-zinc-200 {
+            color: var(--text-main) !important;
+        }
+
+        .text-zinc-300 {
+            color: var(--text-main) !important;
+        }
+
+        .text-zinc-400 {
+            color: var(--text-dim) !important;
+        }
+
+        .text-zinc-500 {
+            color: var(--text-dim) !important;
+        }
+
+        .text-zinc-600 {
+            color: var(--text-dim) !important;
+        }
+
+        .text-zinc-700 {
+            color: var(--text-main) !important;
+        }
+
+        .border-white\/10 {
+            border-color: var(--glass-border) !important;
+        }
+
+        .border-white\/5 {
+            border-color: var(--card-border) !important;
+        }
+
+        [data-theme="light"] .hover\:text-white:hover {
+            color: var(--text-main) !important;
+        }
+
+        [data-theme="light"] .hover\:bg-white\/5:hover {
+            background-color: rgba(15, 23, 42, 0.05) !important;
+        }
+
+        [data-theme="light"] .bg-black\/20 {
+            background-color: rgba(15, 23, 42, 0.05) !important;
+        }
+
+        [data-theme="light"] .bg-zinc-800\/50 {
+            background-color: rgba(15, 23, 42, 0.05) !important;
+        }
+
+        [data-theme="light"] .text-blue-400 {
+            color: #2563eb !important;
+        }
+
+        [data-theme="light"] .text-blue-500 {
+            color: #1d4ed8 !important;
+        }
+
+        [data-theme="light"] .bg-white\/10 {
+            background-color: rgba(15, 23, 42, 0.08) !important;
+        }
+
+        [data-theme="light"] .hover\:bg-white\/10:hover {
+            background-color: rgba(15, 23, 42, 0.1) !important;
+        }
+
+        .keep-white {
+            color: #ffffff !important;
+        }
+
+        .keep-zinc {
+            color: #a1a1aa !important;
+        }
+
+        .blur-text {
+            filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(5, 5, 5, 0.7);
+        }
+
+        /* Line Clamp for Previews */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .animate-scan {
+            animation: scan 3s linear infinite;
+        }
+
+        /* Fixed Aspect Ratio for Uniform Cards */
+        .prompt-card {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Typography & Spacing Overrides for Mobile */
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2.25rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .glass-card {
+                padding: 1.25rem !important;
+            }
+
+            .format-btn {
+                padding: 0.75rem 0.5rem !important;
+                font-size: 10px !important;
+            }
+
+            #otpCode {
+                letter-spacing: 0.25em !important;
+                font-size: 1.5rem !important;
+            }
+        }
+
+        /* Responsive Navbar Tweaks */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1023px) {
+            .nav-actions {
+                display: none !important;
+                flex-direction: column;
+                position: fixed;
+                top: 80px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(5, 5, 5, 0.98);
+                backdrop-filter: blur(25px);
+                padding: 2rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                gap: 2rem;
+                z-index: 100;
+                overflow-y: auto;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                opacity: 0;
+                transform: translateY(-10px);
+                pointer-events: none;
+            }
+
+            .nav-actions.mobile-open {
+                display: flex !important;
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Navbar -->
+    <!-- Optimized Floating Navbar -->
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-[100] transition-all duration-500">
+        <div class="backdrop-blur-3xl border rounded-[2.5rem] px-6 py-3 flex items-center justify-between transition-all duration-300"
+            style="background-color: var(--nav-bg); border-color: var(--glass-border); box-shadow: var(--shadow-premium);">
+
+            <!-- Brand -->
+            <a href="javascript:void(0)" onclick="navManager.showHome()"
+                class="flex items-center gap-3 group cursor-pointer shrink-0 no-underline">
+                <div
+                    class="p-2 bg-blue-600 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] group-hover:scale-110 transition-all">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                </div>
+                <span
+                    class="text-lg font-black tracking-tighter uppercase hidden sm:inline text-[var(--text-main)]">Prompt<span
+                        class="text-blue-500">Lab</span></span>
+            </a>
+
+            <!-- Central Navigation (Desktop) -->
+            <div id="centralNav"
+                class="hidden lg:flex items-center gap-1 bg-black/20 p-1 rounded-2xl border border-white/5">
+                <button onclick="navManager.showHome()"
+                    class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 transition-all">Home</button>
+                <button onclick="feedManager.show()"
+                    class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 transition-all">Community</button>
+                <button onclick="showcaseManager.show()"
+                    class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 transition-all">Showcase</button>
+                <button onclick="dashboardManager.show()"
+                    class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-all">Library</button>
+            </div>
+
+            <!-- Right Actions Area -->
+            <div id="navActions" class="flex items-center gap-3">
+
+                <!-- Guest Section -->
+                <div id="guestSection" class="flex items-center gap-3">
+                    <div id="usageBadge"
+                        class="hidden sm:flex px-4 py-2 rounded-full bg-white/5 border border-white/10 items-center gap-2">
+                        <span class="text-[9px] text-zinc-500 uppercase tracking-widest font-bold">Credits</span>
+                        <span id="remainingCount" class="text-blue-400 font-bold text-xs">--</span>
+                    </div>
+                    <button onclick="authManager.show('login')"
+                        class="px-6 py-2 rounded-full bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl active:scale-95">Sign
+                        In</button>
+                </div>
+
+                <!-- Auth Section -->
+                <div id="authSection" class="hidden flex items-center gap-3 animate-fade-in">
+
+                    <a id="adminLink" href="/custom-admin/"
+                        class="hidden p-2.5 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-all"
+                        title="Admin Panel">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </a>
+
+                    <!-- Utilities Group -->
+                    <div class="flex items-center gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/5">
+                        <button id="themeToggle" class="p-2 hover:bg-white/10 rounded-xl transition-all">
+                            <svg id="sunIcon" class="hidden w-4 h-4 text-amber-400" fill="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    d="M12 7a5 5 0 100 10 5 5 0 000-10zM2 13h2a1 1 0 100-2H2a1 1 0 100 2zm18 0h2a1 1 0 100-2h-2a1 1 0 100 2zM11 2v2a1 1 0 102 0V2a1 1 0 10-2 0zm0 18v2a1 1 0 102 0v-2a1 1 0 10-2 0zM5.99 4.58a1 1 0 10-1.41 1.41l1.41 1.41a1 1 0 101.41-1.41L5.99 4.58zm12.02 12.02a1 1 0 10-1.41 1.41l1.41 1.41a1 1 0 101.41-1.41l-1.41-1.41zm-12.02 0l-1.41 1.41a1 1 0 101.41 1.41l1.41-1.41a1 1 0 10-1.41-1.41zm12.02-12.02l1.41-1.41a1 1 0 10-1.41-1.41l-1.41 1.41a1 1 0 101.41 1.41z" />
+                            </svg>
+                            <svg id="moonIcon" class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                            </svg>
+                        </button>
+
+                        <div class="relative">
+                            <button onclick="socialManager.toggleNotifications(event)"
+                                class="p-2 hover:bg-white/10 rounded-xl transition-all relative">
+                                <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span id="notifCount"
+                                    class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-black animate-pulse"></span>
+                            </button>
+                            <div id="notifDropdown"
+                                class="hidden absolute top-full right-0 pt-4 w-80 shadow-3xl z-[100] animate-fade-in">
+                                <div class="glass-card rounded-3xl p-6"
+                                    style="background-color: var(--bg-secondary); border-color: var(--glass-border); border-width: 1px;">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <h4 class="text-[10px] font-black text-white uppercase tracking-widest">Recent
+                                            Activity</h4>
+                                        <button onclick="socialManager.markAllRead()"
+                                            class="text-[9px] text-blue-400 hover:text-white transition-colors uppercase font-bold">Clear
+                                            All</button>
+                                    </div>
+                                    <div id="notifList" class="space-y-4 max-h-64 overflow-y-auto no-scrollbar">
+                                        <div
+                                            class="text-center py-8 text-zinc-600 text-[9px] font-bold uppercase tracking-widest">
+                                            All caught up</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative group">
+                        <div
+                            class="flex items-center gap-3 bg-white/5 p-1 pr-4 rounded-2xl border border-white/10 hover:border-blue-500/30 cursor-pointer transition-all">
+                            <div class="w-9 h-9 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                                <img id="userAvatar" src="" class="w-full h-full object-cover hidden" alt="Avatar">
+                                <div id="userInitialContainer"
+                                    class="w-full h-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-black text-white text-xs uppercase">
+                                    <span id="userInitial">U</span>
+                                </div>
+                            </div>
+                            <span id="userNameDisplay"
+                                class="text-xs font-black text-white uppercase tracking-tight hidden sm:block">Username</span>
+                            <svg class="w-3 h-3 text-zinc-500 group-hover:text-white transition-all duration-300"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div
+                            class="absolute right-0 top-full w-56 pt-4 opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-[101]">
+                            <div class="backdrop-blur-2xl rounded-[2rem] shadow-3xl p-2"
+                                style="background-color: var(--bg-secondary); border-color: var(--glass-border); border-width: 1px;">
+                                <div class="p-4 border-b border-white/5 mb-2">
+                                    <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-black">Logged in
+                                        as</p>
+                                    <p id="userEmailDisplay" class="text-xs text-white truncate font-medium">
+                                        user@example.com</p>
+                                </div>
+                                <button onclick="profileManager.showMine()"
+                                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    My Profile
+                                </button>
+                                <button onclick="settingsManager.show()"
+                                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Settings
+                                </button>
+                                <div class="h-px bg-white/5 my-2 mx-4"></div>
+                                <button onclick="authManager.logout()"
+                                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-all text-xs font-bold uppercase tracking-widest">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="mobileMenuBtn"
+                    class="lg:hidden p-3 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Background Elements -->
+    <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div class="absolute top-20 left-10 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <main id="mainGenerator"
+        class="max-w-7xl mx-auto px-6 pt-24 lg:pt-40 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
+        <!-- Configuration Side (Left) -->
+        <div class="lg:col-span-7 space-y-8 lg:space-y-12">
+            <div class="space-y-4">
+                <h1 class="text-4xl lg:text-7xl font-extrabold tracking-tight leading-tight lg:leading-[1.1]">
+                    Design Your <span class="text-blue-500 italic">Vision</span>
+                </h1>
+                <p class="text-zinc-400 text-sm lg:text-xl font-medium max-w-xl">Specify your parameters to generate the
+                    perfect AI prompt.</p>
+            </div>
+
+            <!-- Idea Input -->
+            <div id="ideaSection" class="glass-card rounded-3xl p-6 space-y-4">
+                <div class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                    <span class="w-7 h-7 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </span>
+                    Your Idea
+                </div>
+                <textarea id="idea" rows="4"
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-lg"
+                    placeholder="A futuristic cyberpunk city with neon lights and flying cars..."></textarea>
+            </div>
+
+            <!-- Image to Prompt Upload Area (Conditional) -->
+            <div id="imageToPromptUploadSection" class="glass-card rounded-3xl p-6 space-y-4 hidden">
+                <div class="flex items-center justify-between text-sm font-bold uppercase tracking-widest text-zinc-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-7 h-7 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                            </svg>
+                        </span>
+                        Upload Image
+                    </span>
+                    <button id="removeImageBtn" onclick="imageToPromptManager.removeImage()" class="hidden text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">Remove</button>
+                </div>
+                
+                <!-- Upload Area Box -->
+                <div id="uploadDropzone" onclick="document.getElementById('imageToPromptInput').click()" 
+                     class="border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden group">
+                    <input type="file" id="imageToPromptInput" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" onchange="imageToPromptManager.handleFileSelect(event)">
+                    
+                    <!-- Glow effect -->
+                    <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/[0.02] transition-colors pointer-events-none"></div>
+                    
+                    <div id="uploadPlaceholder" class="space-y-4 flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-all duration-300">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm font-bold text-white uppercase tracking-tight">Drag & drop your image here</p>
+                            <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest">or click to browse local files</p>
+                        </div>
+                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">PNG, JPG, JPEG, WEBP up to 10MB</p>
+                    </div>
+                    
+                    <!-- Preview Image -->
+                    <img id="imageToPromptPreview" src="" class="absolute inset-0 w-full h-full object-contain hidden" alt="Upload Preview">
+                    
+                    <!-- Scan line effect -->
+                    <div id="imageScanLine" class="hidden absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_10px_rgba(59,130,246,0.8)] z-10 animate-scan"></div>
+                </div>
+            </div>
+
+            <!-- Configuration Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Prompt Type -->
+                <div class="glass-card rounded-3xl p-6 space-y-4 col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <span class="w-7 h-7 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                stroke-width="2.5">
+                                <circle cx="12" cy="12" r="3" />
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                            </svg>
+                        </span>
+                        Prompt Type
+                    </div>
+                    <div id="promptTypeGrid" class="flex flex-wrap gap-3 pb-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Subcategory -->
+                <div id="subPromptTypeSection" class="glass-card rounded-3xl p-6 space-y-4 col-span-1 md:col-span-2">
+                    <div id="subPromptTypeLabel"
+                        class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <!-- Content dynamically updated by JS -->
+                    </div>
+                    <div id="subPromptTypeGrid" class="flex flex-wrap gap-3 pb-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Format Selection -->
+                <div id="formatSection" class="glass-card rounded-3xl p-6 space-y-4 col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <span class="w-7 h-7 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                stroke-width="2.5">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                        </span>
+                        Select Format
+                    </div>
+                    <div id="formatButtonsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button
+                            class="format-btn px-4 py-3 rounded-xl glass-card text-xs font-bold uppercase tracking-tighter hover:bg-white/5 transition-all active-card"
+                            data-value="natural">Natural</button>
+                        <button
+                            class="format-btn px-4 py-3 rounded-xl glass-card text-xs font-bold uppercase tracking-tighter hover:bg-white/5 transition-all"
+                            data-value="keywords">Keywords</button>
+                        <button
+                            class="format-btn px-4 py-3 rounded-xl glass-card text-xs font-bold uppercase tracking-tighter hover:bg-white/5 transition-all"
+                            data-value="json">JSON</button>
+                        <button
+                            class="format-btn px-4 py-3 rounded-xl glass-card text-xs font-bold uppercase tracking-tighter hover:bg-white/5 transition-all"
+                            data-value="image">Image</button>
+                    </div>
+                </div>
+
+                <!-- Art Styles (Conditional) -->
+                <div id="styleSection" class="glass-card rounded-3xl p-6 space-y-4 col-span-1 md:col-span-2 hidden">
+                    <div class="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <span class="w-7 h-7 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                stroke-width="2.5">
+                                <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08" />
+                                <path
+                                    d="M7.07 14.94c-3.91.35-7.07 3.54-7.07 7.46 0 .33.27.6.6.6 3.92 0 7.11-3.16 7.46-7.07l-.99-.99z" />
+                            </svg>
+                        </span>
+                        Art Styles
+                    </div>
+                    <div id="styleGrid" class="flex flex-wrap gap-3 pb-2">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="modalStats" class="flex items-center gap-6">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="modalActions" class="flex items-center gap-3">
+                        <!-- Report Button injected here by JS if not owner -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generateBtn"
+                class="w-full py-6 rounded-3xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xl tracking-wide shadow-[0_0_30px_rgba(37,99,235,0.4)] transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
+                GENERATE PROMPT
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Result Side (Right) -->
+        <div class="lg:col-span-5 relative">
+            <div class="sticky top-32 space-y-8">
+                <div class="glass-card rounded-[2.5rem] p-8 min-h-[500px] flex flex-col">
+                    <div class="flex justify-between items-center mb-8">
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Output Result</span>
+                        <div id="modelBadge"
+                            class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-400 font-bold uppercase tracking-widest">
+                            GEMINI 1.5</div>
+                    </div>
+
+                    <div class="flex-1 relative min-h-[300px]">
+                        <textarea id="output" readonly
+                            class="absolute inset-0 w-full h-full bg-transparent border-none focus:ring-0 text-sm md:text-base font-medium leading-relaxed text-zinc-300 resize-none custom-scrollbar py-0"
+                            placeholder="Generated prompt will appear here..."></textarea>
+
+                        <!-- Blur Overlay -->
+                        <div id="blurOverlay"
+                            class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-6">
+                            <div class="p-4 bg-blue-600 rounded-3xl shadow-[0_0_30px_rgba(37,99,235,0.4)]">
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-2xl font-black">LIMIT REACHED</h3>
+                                <p class="text-zinc-400 text-sm">Join PromptLab for unlimited access to high-fidelity AI
+                                    models.</p>
+                            </div>
+                            <button onclick="showModal()"
+                                class="px-8 py-4 bg-white text-black rounded-2xl font-bold hover:bg-zinc-200 transition-all">Unlock
+                                Now</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
+                        <div class="flex gap-4">
+                            <button id="copyBtn"
+                                class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                                Copy
+                            </button>
+                            <button id="saveBtn" onclick="dashboardManager.showSaveModal()"
+                                class="flex items-center gap-2 text-zinc-500 hover:text-blue-400 transition-colors text-xs font-bold uppercase tracking-widest">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                </svg>
+                                Save
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <div class="w-2 h-2 rounded-full bg-white/10"></div>
+                            <div class="w-2 h-2 rounded-full bg-white/10"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Save Prompt Modal -->
+    <div id="saveModal"
+        class="fixed inset-0 z-[110] hidden items-center justify-center p-4 lg:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-md glass-card rounded-[2.5rem] p-8 space-y-6">
+            <h2 class="text-2xl font-black">SAVE <span class="text-blue-500">PROMPT</span></h2>
+            <div class="space-y-4">
+                <input type="text" id="saveTitle" placeholder="Prompt Title (e.g. Cyberpunk City)"
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+
+                <div class="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold">Private Mode</span>
+                        <span class="text-[10px] text-zinc-500 uppercase tracking-widest">Encrypted & Secure</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="savePrivate" class="sr-only peer" checked>
+                        <div
+                            class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                        </div>
+                    </label>
+                </div>
+
+                <button onclick="dashboardManager.savePrompt()"
+                    class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">CONFIRM
+                    SAVE</button>
+                <button onclick="dashboardManager.hideSaveModal()"
+                    class="w-full text-zinc-500 text-xs font-bold uppercase tracking-widest">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Prompts Dashboard Overlay -->
+    <div id="dashboardOverlay" class="hidden max-w-7xl mx-auto px-6 pt-24 lg:pt-40 pb-20">
+        <div class="space-y-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
+                <div class="space-y-1">
+                    <h2 class="text-3xl lg:text-5xl font-black tracking-tight uppercase">MY <span
+                            class="text-blue-500 italic">PROMPTS</span></h2>
+                    <p class="text-zinc-500 text-[10px] lg:text-xs uppercase tracking-[0.3em] font-black">Secure
+                        Personal Library</p>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="flex flex-col md:flex-row gap-4 mb-10">
+                <div class="flex-1 relative">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="promptSearch" oninput="dashboardManager.loadPrompts()"
+                        placeholder="Search in your prompts..."
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                </div>
+                <select id="promptSort" onchange="dashboardManager.loadPrompts()"
+                    class="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <option value="-created_at">Newest First</option>
+                    <option value="created_at">Oldest First</option>
+                    <option value="title">By Title</option>
+                </select>
+            </div>
+
+            <!-- Prompts Grid -->
+            <div id="promptsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center p-4 lg:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-md glass-card rounded-[2.5rem] p-8 overflow-hidden space-y-6">
+            <!-- Neon background blurs -->
+            <div class="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px]"></div>
+            <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/20 rounded-full blur-[80px]"></div>
+
+            <button onclick="authManager.hide()"
+                class="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors z-20">
+                <svg class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Login Section -->
+            <div id="loginSection" class="relative z-10 space-y-6">
+                <h2 class="text-3xl font-black tracking-tight">WELCOME <span class="text-blue-500">BACK</span></h2>
+                <div class="space-y-4">
+                    <input type="text" id="loginIdentifier" placeholder="Username or Email"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <div class="relative group">
+                        <input type="password" id="loginPassword" placeholder="Password"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                        <button type="button" onclick="authManager.togglePassword('loginPassword')"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                id="loginPassword_eye">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button onclick="authManager.login()"
+                        class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">LOGIN</button>
+                    <div class="flex justify-between text-sm">
+                        <button onclick="authManager.switch('forgot')"
+                            class="text-zinc-500 hover:text-white transition-colors">Forgot Password?</button>
+                        <button onclick="authManager.switch('register')" class="text-blue-400 font-bold">Create
+                            Account</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register Section -->
+            <div id="registerSection" class="relative z-10 space-y-6 hidden">
+                <h2 class="text-3xl font-black tracking-tight">JOIN <span class="text-blue-500">PROMPTLAB</span></h2>
+                <div class="space-y-4">
+                    <input type="text" id="regUsername" placeholder="Username"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <input type="email" id="regEmail" placeholder="Email Address"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <div class="relative group">
+                        <input type="password" id="regPassword" placeholder="Password"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                        <button type="button" onclick="authManager.togglePassword('regPassword')"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                id="regPassword_eye">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button onclick="authManager.register()"
+                        class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all">SEND
+                        OTP</button>
+                    <p class="text-center text-sm text-zinc-500">Already have an account? <button
+                            onclick="authManager.switch('login')" class="text-blue-400 font-bold">Login</button></p>
+                </div>
+            </div>
+
+            <!-- OTP Verification Section -->
+            <div id="otpSection" class="relative z-10 space-y-6 hidden">
+                <h2 class="text-3xl font-black tracking-tight">VERIFY <span class="text-blue-500">EMAIL</span></h2>
+                <p id="otpMessage" class="text-zinc-400 text-sm">Enter the 6-digit code sent to your email.</p>
+                <div class="space-y-4">
+                    <input type="text" id="otpCode" maxlength="6" placeholder="000000"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-3xl font-black tracking-[0.5em] text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <div class="flex items-center justify-between">
+                        <span id="otpTimer" class="text-blue-400 font-mono text-sm font-bold">00:59</span>
+                        <button id="resendOtpBtn" disabled onclick="authManager.resendOtp()"
+                            class="text-sm font-bold text-zinc-600 disabled:opacity-50">Resend OTP</button>
+                    </div>
+                    <button onclick="authManager.verifyOtp()"
+                        class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all">VERIFY
+                        & PROCEED</button>
+                </div>
+            </div>
+
+            <!-- Forgot Password Section -->
+            <div id="forgotSection" class="relative z-10 space-y-6 hidden">
+                <h2 class="text-3xl font-black tracking-tight">RESET <span class="text-blue-500">PASSWORD</span></h2>
+                <div class="space-y-4">
+                    <input type="email" id="forgotEmail" placeholder="Email Address"
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                    <button onclick="authManager.forgotPassword()"
+                        class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all">SEND
+                        RESET CODE</button>
+                    <button onclick="authManager.switch('login')" class="w-full text-zinc-500 text-sm font-bold">Back to
+                        Login</button>
+                </div>
+            </div>
+
+            <!-- Reset Password Final Section -->
+            <div id="resetFinalSection" class="relative z-10 space-y-6 hidden">
+                <h2 class="text-3xl font-black tracking-tight">NEW <span class="text-blue-500">PASSWORD</span></h2>
+                <div class="space-y-4">
+                    <div class="relative group">
+                        <input type="password" id="resetNewPassword" placeholder="New Password"
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                        <button type="button" onclick="authManager.togglePassword('resetNewPassword')"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                id="resetNewPassword_eye">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button onclick="authManager.resetPassword()"
+                        class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all">UPDATE
+                        PASSWORD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Modal (Old - but updated to call authModal) -->
+    <div id="premiumModal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+
+        <div class="relative w-full max-w-xl glass-card rounded-[3rem] p-10 overflow-hidden text-center space-y-8">
+            <div class="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px]"></div>
+            <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/20 rounded-full blur-[80px]"></div>
+
+            <button onclick="hideModal()"
+                class="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors">
+                <svg class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="relative z-10 space-y-6">
+                <div class="inline-block p-4 bg-blue-600 rounded-[2rem] shadow-[0_0_40px_rgba(37,99,235,0.5)]">
+                    <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                </div>
+
+                <h2 class="text-4xl font-black tracking-tight leading-tight">UNLOCK THE <br><span
+                        class="text-blue-500">PRO EXPERIENCE</span></h2>
+                <p class="text-zinc-400 text-lg px-4">You've exhausted your free trial. Register today to get unlimited
+                    high-speed generations and early access to new models.</p>
+
+                <div class="space-y-4">
+                    <button onclick="hideModal(); authManager.show('register')"
+                        class="w-full py-5 rounded-2xl bg-white text-black font-black text-lg hover:bg-zinc-200 transition-all">CREATE
+                        FREE ACCOUNT</button>
+                    <button onclick="hideModal(); authManager.show('login')"
+                        class="w-full py-5 rounded-2xl border border-white/10 hover:bg-white/5 text-zinc-400 font-bold transition-all uppercase tracking-widest text-xs">Already
+                        have an account? <span class="text-blue-500">Log In</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Feed Overlay -->
+    <div id="feedOverlay" class="hidden max-w-7xl mx-auto px-6 pt-24 lg:pt-40 pb-20">
+        <div class="space-y-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
+                <div class="space-y-1">
+                    <h2 class="text-3xl lg:text-5xl font-black tracking-tight uppercase">COMMUNITY <span
+                            class="text-blue-500 italic">FEED</span></h2>
+                    <p class="text-zinc-500 text-[10px] lg:text-xs uppercase tracking-[0.3em] font-black">Discover
+                        Public Masterpieces</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex p-1 bg-white/5 border border-white/10 rounded-2xl">
+                        <button onclick="feedManager.setSort('latest')" id="sortLatest"
+                            class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-blue-600 text-white">Latest</button>
+                        <button onclick="feedManager.setSort('trending')" id="sortTrending"
+                            class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-zinc-500 hover:text-white">Trending</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Feed Filters -->
+            <div class="flex flex-col md:flex-row gap-4 mb-10">
+                <div class="flex-1 relative">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" id="feedSearch" oninput="feedManager.load()"
+                        placeholder="Search community prompts..."
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Feed Grid -->
+            <div id="feedGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Visibility Toggle Confirmation Modal -->
+    <div id="toggleModal"
+        class="fixed inset-0 z-[160] hidden items-center justify-center p-4 lg:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-sm glass-card rounded-[2.5rem] p-8 text-center space-y-6">
+            <div id="toggleIcon"
+                class="w-20 h-20 mx-auto bg-blue-600/10 rounded-full flex items-center justify-center text-blue-500">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542 7z" />
+                </svg>
+            </div>
+            <div class="space-y-2">
+                <h3 id="toggleTitle" class="text-2xl font-black">MAKE PUBLIC?</h3>
+                <p id="toggleDesc" class="text-zinc-400 text-sm">This prompt will be visible to everyone in the
+                    community feed.</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button id="confirmToggleBtn"
+                    class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all">CONFIRM
+                    CHANGE</button>
+                <button onclick="dashboardManager.hideToggleModal()"
+                    class="w-full text-zinc-500 text-xs font-bold uppercase tracking-widest">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmModal"
+        class="fixed inset-0 z-[170] hidden items-center justify-center p-4 lg:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-sm glass-card rounded-[2.5rem] p-8 text-center space-y-6">
+            <div class="w-20 h-20 mx-auto bg-red-600/10 rounded-full flex items-center justify-center text-red-500">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <div class="space-y-2">
+                <h3 id="confirmTitle" class="text-2xl font-black">DELETE?</h3>
+                <p id="confirmDesc" class="text-zinc-400 text-sm">Are you sure? This action cannot be undone.</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button id="confirmActionBtn"
+                    class="w-full py-4 rounded-2xl bg-red-600 text-white font-black hover:bg-red-500 transition-all uppercase tracking-widest">Confirm</button>
+                <button id="cancelActionBtn"
+                    class="w-full text-zinc-500 text-xs font-bold uppercase tracking-widest">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Comment Modal -->
+    <div id="editCommentModal"
+        class="fixed inset-0 z-[200] hidden items-center justify-center p-4 lg:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
+        <div class="relative w-full max-w-lg glass-card rounded-[2.5rem] p-8 space-y-6">
+            <h3 class="text-2xl font-black uppercase tracking-tight">Edit <span class="text-blue-500">Comment</span>
+            </h3>
+            <textarea id="editCommentInput"
+                class="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-6 text-zinc-200 outline-none focus:border-blue-500/50 transition-all resize-none leading-relaxed"></textarea>
+            <div class="flex gap-4">
+                <button id="saveCommentBtn"
+                    class="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all uppercase tracking-widest">Save
+                    Changes</button>
+                <button onclick="socialManager.hideEditModal()"
+                    class="px-8 py-4 rounded-2xl bg-white/5 text-zinc-500 font-bold hover:text-white transition-all">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[300] p-4 lg:p-6 overflow-y-auto">
+        <div class="glass-card w-full max-w-lg p-10 rounded-[3rem] space-y-8 animate-in zoom-in-95 duration-300">
+            <div class="space-y-2">
+                <h3 class="text-3xl font-black font-display uppercase tracking-tight">Report <span
+                        class="text-red-500 italic">Content</span></h3>
+                <p class="text-zinc-500 text-sm font-medium">Help us keep the community safe. What's wrong?</p>
+            </div>
+
+            <div class="space-y-4">
+                <label class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Reason for Report</label>
+                <textarea id="reportReason" placeholder="Spam, harassment, harmful content..."
+                    class="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-6 text-sm text-white focus:outline-none focus:border-red-500/30 h-40 resize-none transition-all"></textarea>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="socialManager.hideReportModal()"
+                    class="flex-1 py-4 rounded-[1.5rem] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest transition-all">Cancel</button>
+                <button id="submitReportBtn"
+                    class="flex-1 py-4 rounded-[1.5rem] bg-red-600 hover:bg-red-500 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20">Submit
+                    Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"
+        class="fixed top-8 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-3 w-full max-w-md pointer-events-none">
+        <!-- Toasts will be injected here -->
+    </div>
+
+    <!-- View Prompt Modal -->
+    <div id="viewPromptModal"
+        class="fixed inset-0 z-[130] hidden items-center justify-center p-4 lg:p-6 bg-black/95 backdrop-blur-2xl overflow-y-auto">
+        <div
+            class="relative w-full max-w-2xl glass-card rounded-[3rem] p-10 space-y-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-start">
+                <div class="space-y-1">
+                    <h2 id="viewTitle" class="text-3xl font-black text-white">PROMPT TITLE</h2>
+                    <div class="flex items-center gap-3">
+                        <p id="viewMeta" class="text-xs text-zinc-500 font-bold uppercase tracking-[0.2em]">CATEGORY •
+                            DATE</p>
+                        <span class="text-zinc-700">•</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Created
+                                by</span>
+                            <span id="viewCreator"
+                                class="text-[10px] text-blue-400 font-black uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded-md">USERNAME</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="dashboardManager.hideViewModal()"
+                    class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <span class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Original Idea</span>
+                    <p id="viewIdea" class="text-zinc-400 italic bg-white/5 p-4 rounded-2xl border border-white/5">"The
+                        user's initial idea goes here..."</p>
+                </div>
+
+                <div class="space-y-2">
+                    <span class="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Generated Prompt</span>
+                    <div class="relative group">
+                        <textarea id="viewContent" readonly
+                            class="w-full h-64 bg-white/5 border border-white/10 rounded-[2rem] p-6 text-sm md:text-base text-zinc-200 resize-none no-scrollbar leading-relaxed"></textarea>
+                        <button onclick="dashboardManager.copyFromView()"
+                            class="absolute top-4 right-4 p-3 bg-blue-600 text-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="viewSocialActions"
+                class="flex flex-wrap items-center justify-between gap-6 pt-8 border-t border-white/5">
+                <div class="flex items-center gap-4">
+                    <button id="likeBtn" onclick="socialManager.toggleLike('LIKE')"
+                        class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 hover:bg-blue-500/10 border border-white/10 hover:border-blue-500/30 transition-all group">
+                        <svg class="w-5 h-5 text-zinc-500 group-hover:text-blue-400 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 10h4.708C19.743 10 20.5 10.842 20.5 11.954c0 1.012-.603 1.947-1.49 2.362l-4.34 2.028a4.113 4.113 0 01-1.67.356H10a1 1 0 01-1-1V11l4-8c.5-1 1.5-1 2 0l-1 5z" />
+                        </svg>
+                        <span id="viewLikes" class="text-sm font-black text-zinc-400 group-hover:text-blue-400">0</span>
+                    </button>
+                    <button id="dislikeBtn" onclick="socialManager.toggleLike('DISLIKE')"
+                        class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 transition-all group">
+                        <svg class="w-5 h-5 text-zinc-500 group-hover:text-red-400 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14H5.292C4.257 14 3.5 13.158 3.5 12.046c0-1.012.603-1.947-1.49-2.362l4.34-2.028c.507-.237 1.079-.356 1.67-.356H14a1 1 0 011 1v6l-4 8c-.5 1-1.5 1-2 0l1-5z" />
+                        </svg>
+                        <span id="viewDislikes"
+                            class="text-sm font-black text-zinc-400 group-hover:text-red-400">0</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="viewReportBtn"
+                        onclick="socialManager.showReportModal('PROMPT', state.feed.activePromptId)"
+                        class="hidden items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 transition-all group">
+                        <svg class="w-4 h-4 text-zinc-500 group-hover:text-red-400 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span
+                            class="text-xs font-black text-zinc-400 group-hover:text-red-400 uppercase tracking-widest">Report</span>
+                    </button>
+                    <div class="flex items-center gap-2 text-zinc-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span id="viewViews" class="text-xs font-black uppercase tracking-widest">0 VIEWS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comment Section -->
+            <div id="viewCommentsSection" class="space-y-6 pt-8 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-black text-white uppercase tracking-widest">Discussion</h3>
+                    <span id="commentCount" class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">0
+                        Comments</span>
+                </div>
+
+                <div id="commentList" class="space-y-4 max-h-64 overflow-y-auto pr-2 no-scrollbar">
+                    <!-- Comments here -->
+                </div>
+
+                <div class="relative group">
+                    <textarea id="commentInput" placeholder="Add a public comment..."
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-zinc-200 outline-none focus:border-blue-500/50 transition-all resize-none h-20"></textarea>
+                    <button onclick="socialManager.postComment()"
+                        class="absolute bottom-3 right-3 px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 transition-all shadow-lg">Post</button>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="dashboardManager.copyFromView()"
+                    class="flex-1 py-4 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    COPY PROMPT
+                </button>
+                <div id="viewOwnerActions" class="hidden flex gap-4 flex-1">
+                    <button id="viewToggleBtn"
+                        class="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest">Visibility</button>
+                    <button id="viewDeleteBtn"
+                        class="flex-1 py-4 rounded-2xl bg-red-600/10 border border-red-600/20 text-red-500 font-black hover:bg-red-600/20 transition-all uppercase text-[10px] tracking-widest">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Showcase Section -->
+    <div id="showcaseSection" class="hidden max-w-7xl mx-auto px-6 pt-24 lg:pt-40 pb-20 space-y-16">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div class="space-y-2">
+                <h2 class="text-4xl lg:text-6xl font-black tracking-tight uppercase">AI <span
+                        class="text-blue-500 italic">Showcase</span></h2>
+                <p class="text-zinc-500 text-xs uppercase tracking-[0.3em] font-black">Visual Masterpieces from Our
+                    Community</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="showcaseManager.showUploadModal()"
+                    class="px-8 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">Share
+                    Your Work</button>
+                <div class="flex bg-white/5 p-1.5 rounded-2xl border border-white/10">
+                    <button id="showcaseLatestBtn" onclick="showcaseManager.setSort('latest')"
+                        class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white/10 text-white transition-all">Latest</button>
+                    <button id="showcasePopularBtn" onclick="showcaseManager.setSort('popular')"
+                        class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">Popular</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Masonry Grid -->
+        <div id="imageMasonry" class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+            <!-- Images will be injected here -->
+        </div>
+
+        <!-- Load More -->
+        <div id="showcaseLoadMore" class="flex justify-center pt-16 hidden">
+            <button onclick="showcaseManager.loadNextPage()"
+                class="px-10 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-black uppercase tracking-widest transition-all">Load
+                More Art</button>
+        </div>
+    </div>
+
+    <!-- Upload Image Modal -->
+    <div id="uploadImageModal"
+        class="fixed inset-0 z-[140] hidden items-center justify-center p-4 lg:p-6 bg-black/95 backdrop-blur-2xl overflow-y-auto">
+        <div
+            class="relative w-full max-w-xl glass-card rounded-[3rem] p-10 space-y-8 animate-in zoom-in-95 duration-300">
+            <div class="flex justify-between items-center">
+                <h3 class="text-2xl font-black uppercase tracking-tight">Share <span class="text-blue-500">AI Art</span>
+                </h3>
+                <button onclick="showcaseManager.hideUploadModal()"
+                    class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="uploadImageForm" class="space-y-6">
+                <div id="dropZone"
+                    class="relative h-64 bg-white/5 border-2 border-dashed border-white/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-white/[0.07] hover:border-blue-500/50 transition-all group">
+                    <input type="file" id="imageInput" accept="image/*"
+                        class="absolute inset-0 opacity-0 cursor-pointer">
+                    <div
+                        class="p-5 bg-blue-500/10 rounded-full text-blue-500 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-black uppercase tracking-widest text-white">Click or Drop Image</p>
+                        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">High resolution
+                            PNG/JPG supported</p>
+                    </div>
+                    <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover rounded-[2.5rem] hidden">
+                </div>
+
+                <div class="space-y-4">
+                    <input type="text" id="imageTitle" placeholder="Give your art a title..."
+                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+
+                    <!-- Searchable Prompt Selector -->
+                    <div class="relative group/search">
+                        <div
+                            class="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 focus-within:border-blue-500/50 transition-all">
+                            <svg class="w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" id="promptSearchInput"
+                                placeholder="Link to a public prompt (Title or @User)..."
+                                class="w-full bg-transparent text-sm text-white focus:outline-none"
+                                oninput="showcaseManager.searchPrompts(this.value)">
+                            <input type="hidden" id="imagePromptId">
+                        </div>
+
+                        <!-- Search Results Dropdown -->
+                        <div id="promptSearchResults"
+                            class="absolute top-full left-0 right-0 mt-2 bg-[#0c0c0e] border border-white/10 rounded-2xl overflow-hidden z-50 hidden shadow-2xl">
+                            <!-- Results will be injected here -->
+                        </div>
+                    </div>
+
+                    <div id="selectedPromptChip"
+                        class="hidden flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/30 rounded-2xl">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Linked
+                                Prompt</span>
+                            <span id="selectedPromptTitle" class="text-xs text-white font-bold truncate">Title</span>
+                        </div>
+                        <button type="button" onclick="showcaseManager.clearSelectedPrompt()"
+                            class="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select id="imageModel"
+                            class="bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-zinc-400 focus:outline-none focus:border-blue-500/50 transition-all">
+                            <option value="DALL-E 3">DALL-E 3</option>
+                            <option value="Midjourney v6">Midjourney v6</option>
+                            <option value="Stable Diffusion XL">Stable Diffusion XL</option>
+                            <option value="Grok 3 (FLUX)">Grok 3 (FLUX)</option>
+                            <option value="Nano Banana">Nano Banana</option>
+                            <option value="ChatGPT">ChatGPT</option>
+                            <option value="Other">Other / Unknown</option>
+                        </select>
+                        <input type="text" id="inspiredBy" placeholder="Inspired by (Optional)"
+                            class="bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-5 rounded-[2rem] bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20">Upload
+                    to Gallery</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Image Lightbox -->
+    <div id="viewImageModal"
+        class="fixed inset-0 z-[150] hidden items-center justify-center p-4 lg:p-10 bg-black/98 backdrop-blur-3xl overflow-y-auto">
+        <div class="relative w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <button onclick="showcaseManager.hideViewModal()"
+                class="fixed top-8 right-8 p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all z-[160]">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Image Column -->
+            <div class="lg:col-span-8 flex items-center justify-center min-h-[50vh] lg:min-h-screen">
+                <img id="fullImage"
+                    class="max-w-full max-h-[85vh] rounded-[2rem] shadow-2xl animate-in fade-in zoom-in-95 duration-500"
+                    src="" alt="">
+            </div>
+
+            <!-- Details Column -->
+            <div class="lg:col-span-4 space-y-8 pt-10 lg:pt-20">
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <h2 id="imageDetailTitle" class="text-3xl font-black tracking-tight uppercase">TITLE</h2>
+                        <div id="imagePromptLink"
+                            class="hidden text-sm font-bold text-zinc-500 uppercase tracking-widest hover:text-blue-400 transition-all cursor-pointer">
+                            Prompt: <span id="imageDetailPromptTitle" class="text-blue-500">PROMPT TITLE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-4 p-6 bg-white/5 border border-white/10 rounded-[2rem]">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-xs font-black text-white"
+                                    id="imageDetailInitial">U</div>
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Uploaded
+                                        by</span>
+                                    <span id="imageDetailUploader" class="text-sm font-bold text-white">@username</span>
+                                </div>
+                            </div>
+                            <span id="imageDetailModel"
+                                class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-blue-400 tracking-widest">MODEL</span>
+                        </div>
+
+                        <div id="promptCreatorTag" class="hidden flex items-center gap-3 pt-4 border-t border-white/5">
+                            <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                            <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                                Prompt by <span id="promptCreatorName"
+                                    class="text-blue-400 cursor-pointer hover:underline">@user</span>
+                            </span>
+                        </div>
+
+                        <div id="inspiredByTag"
+                            class="hidden text-[10px] font-black text-zinc-500 uppercase tracking-widest italic pt-2">
+                            Inspired by: <span id="inspiredByName" class="text-white">Mention</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button id="imageLikeBtn" onclick="showcaseManager.toggleLike()"
+                        class="flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl bg-white/5 hover:bg-blue-500/10 border border-white/10 hover:border-blue-500/30 transition-all group">
+                        <svg class="w-5 h-5 text-zinc-500 group-hover:text-blue-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span id="imageLikes"
+                            class="text-sm font-black text-zinc-400 group-hover:text-blue-400">0</span>
+                    </button>
+                    <button onclick="showcaseManager.downloadImage()"
+                        class="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Comments -->
+                <div class="space-y-6 pt-8 border-t border-white/5">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Discussion</h3>
+                    <div id="imageCommentsList" class="space-y-6 max-h-[30vh] overflow-y-auto no-scrollbar pr-2">
+                        <!-- Comments here -->
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="imageCommentInput" placeholder="Add a comment..."
+                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-16 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                        <button onclick="showcaseManager.addComment()"
+                            class="absolute right-2 top-2 p-2 text-blue-500 hover:text-blue-400 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profileSection" class="hidden max-w-7xl mx-auto px-6 pt-24 lg:pt-40 pb-20 space-y-16">
+        <div class="relative rounded-[3rem] overflow-hidden border border-white/10 bg-zinc-900/50">
+            <div
+                class="h-48 lg:h-64 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-3xl">
+            </div>
+            <div
+                class="px-8 lg:px-16 pb-12 -mt-20 relative z-10 flex flex-col lg:flex-row items-center lg:items-end gap-8">
+                <div class="relative group">
+                    <div
+                        class="w-40 h-40 rounded-[2.5rem] border-4 border-[#050505] overflow-hidden bg-zinc-800 shadow-2xl transition-transform group-hover:scale-105">
+                        <img id="p_avatar" src="" class="w-full h-full object-cover hidden" alt="Avatar">
+                        <div id="p_avatar_placeholder"
+                            class="w-full h-full flex items-center justify-center text-5xl font-black text-white bg-gradient-to-br from-blue-600 to-purple-600">
+                            <span id="p_initial">U</span>
+                        </div>
+                    </div>
+                    <button id="p_edit_avatar_btn" onclick="settingsManager.show('profile')"
+                        class="hidden absolute bottom-2 right-2 p-3 bg-blue-600 text-white rounded-2xl shadow-xl hover:scale-110 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 text-center lg:text-left space-y-4">
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                            <h1 id="p_username"
+                                class="text-4xl lg:text-6xl font-black tracking-tight text-white uppercase italic">
+                                USERNAME</h1>
+                            <div id="p_badges" class="flex gap-2"></div>
+                        </div>
+                        <p id="p_joined" class="text-zinc-500 text-xs font-black uppercase tracking-[0.3em]">MEMBER
+                            SINCE --</p>
+                    </div>
+                    <p id="p_bio" class="text-zinc-400 max-w-2xl text-sm lg:text-base leading-relaxed">No bio added yet.
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6">
+                        <div class="flex items-center gap-2 text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span id="p_location" class="text-[10px] font-black uppercase tracking-widest">Earth</span>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="text-center">
+                                <span id="p_followers" class="block text-xl font-black text-white">0</span>
+                                <span
+                                    class="text-[8px] text-zinc-500 font-black uppercase tracking-widest">Followers</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="p_following" class="block text-xl font-black text-white">0</span>
+                                <span
+                                    class="text-[8px] text-zinc-500 font-black uppercase tracking-widest">Following</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3 min-w-[200px]">
+                    <button id="p_follow_btn" onclick="profileManager.toggleFollow()"
+                        class="hidden px-8 py-4 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all shadow-xl">FOLLOW</button>
+                    <button id="p_edit_btn" onclick="settingsManager.show()"
+                        class="hidden px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all">EDIT
+                        PROFILE</button>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-10">
+            <div class="flex items-center gap-8 border-b border-white/10 pb-4">
+                <button onclick="profileManager.switchTab('artworks')" id="p_tab_artworks"
+                    class="text-xs font-black uppercase tracking-[0.2em] text-white border-b-2 border-blue-500 pb-4">Artworks</button>
+                <button onclick="profileManager.switchTab('prompts')" id="p_tab_prompts"
+                    class="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all pb-4">Prompts</button>
+            </div>
+            <div id="p_grid_artworks" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="p_grid_prompts" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div id="settingsSection" class="hidden max-w-5xl mx-auto px-6 pt-24 lg:pt-40 pb-20">
+        <div class="flex flex-col lg:flex-row gap-12">
+            <div class="lg:w-64 space-y-8">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-black tracking-tight text-white uppercase">SETTINGS</h2>
+                    <p class="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">MANAGE YOUR ACCOUNT</p>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <button onclick="settingsManager.switchTab('profile')" id="s_tab_profile"
+                        class="flex items-center gap-4 px-6 py-4 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        Profile
+                    </button>
+                    <button onclick="settingsManager.switchTab('account')" id="s_tab_account"
+                        class="flex items-center gap-4 px-6 py-4 rounded-2xl text-zinc-500 hover:bg-white/5 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Security
+                    </button>
+                    <button onclick="settingsManager.switchTab('privacy')" id="s_tab_privacy"
+                        class="flex items-center gap-4 px-6 py-4 rounded-2xl text-zinc-500 hover:bg-white/5 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Privacy
+                    </button>
+                </nav>
+                <button onclick="navManager.showHome()"
+                    class="flex items-center gap-4 px-6 py-4 text-zinc-600 hover:text-zinc-400 text-[10px] font-black uppercase tracking-widest transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Generator
+                </button>
+            </div>
+            <div class="flex-1 glass-card rounded-[3rem] p-8 lg:p-12 border border-white/10">
+                <div id="s_content_profile" class="space-y-10">
+                    <div class="flex flex-col lg:flex-row items-center gap-8">
+                        <div class="relative group">
+                            <div
+                                class="w-32 h-32 rounded-3xl overflow-hidden bg-zinc-800 border-2 border-white/10 group-hover:border-blue-500/50 transition-all">
+                                <img id="s_avatar_preview" src="" class="w-full h-full object-cover hidden"
+                                    alt="Preview">
+                                <div id="s_avatar_placeholder"
+                                    class="w-full h-full flex items-center justify-center text-4xl font-black text-white bg-gradient-to-tr from-blue-600 to-purple-600">
+                                    <span id="s_initial">U</span>
+                                </div>
+                            </div>
+                            <label
+                                class="absolute -bottom-2 -right-2 p-2 bg-blue-600 text-white rounded-xl shadow-xl cursor-pointer hover:scale-110 transition-all">
+                                <input type="file" id="avatarInput" class="hidden" accept="image/*"
+                                    onchange="settingsManager.previewAvatar(event)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </label>
+                        </div>
+                        <div class="text-center lg:text-left space-y-1">
+                            <h3 class="text-xl font-bold text-white uppercase tracking-tight">Profile Picture</h3>
+                            <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest">Recommended: 400x400
+                                JPG/PNG</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Full
+                                Bio</label>
+                            <textarea id="s_bio" rows="4"
+                                class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all resize-none"
+                                placeholder="Tell the community about yourself..."></textarea>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Location</label>
+                                <input type="text" id="s_location"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Website</label>
+                                <input type="url" id="s_website"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-8 border-t border-white/5">
+                        <button onclick="settingsManager.saveProfile()"
+                            class="px-10 py-4 rounded-2xl bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">SAVE
+                            CHANGES</button>
+                    </div>
+                </div>
+                <div id="s_content_account" class="hidden space-y-10">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Username</label>
+                                <input type="text" id="s_username"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-zinc-500">Email
+                                    Address</label>
+                                <input type="email" id="s_email"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            </div>
+                        </div>
+                        <div class="pt-8 border-t border-white/5 space-y-6">
+                            <h4 class="text-xs font-black uppercase tracking-widest text-white">Change Password</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <input type="password" id="s_new_password" placeholder="New Password"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                                <input type="password" id="s_confirm_password" placeholder="Confirm New Password"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-8 border-t border-white/5 space-y-6">
+                        <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Confirm current password to
+                            save account changes</p>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <input type="password" id="s_current_password" placeholder="Current Password"
+                                class="flex-1 bg-white/5 border border-white/20 rounded-2xl p-4 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all">
+                            <button onclick="settingsManager.saveAccount()"
+                                class="px-10 py-4 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all">UPDATE
+                                ACCOUNT</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="s_content_privacy" class="hidden space-y-10">
+                    <div class="space-y-4">
+                        <label
+                            class="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl cursor-pointer hover:bg-white/[0.07] transition-all group">
+                            <div class="space-y-1">
+                                <span class="text-sm font-bold text-white uppercase tracking-tight">Hide Activity
+                                    Feed</span>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Likes and
+                                    comments hidden from public view</p>
+                            </div>
+                            <input type="checkbox" id="s_hide_activity"
+                                class="w-6 h-6 rounded-lg bg-white/10 border-white/20 text-blue-600 focus:ring-0">
+                        </label>
+                        <label
+                            class="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl cursor-pointer hover:bg-white/[0.07] transition-all group">
+                            <div class="space-y-1">
+                                <span class="text-sm font-bold text-white uppercase tracking-tight">Hide Public
+                                    Artworks</span>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Artworks hidden
+                                    from your public profile</p>
+                            </div>
+                            <input type="checkbox" id="s_hide_artworks"
+                                class="w-6 h-6 rounded-lg bg-white/10 border-white/20 text-blue-600 focus:ring-0">
+                        </label>
+                        <label
+                            class="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl cursor-pointer hover:bg-white/[0.07] transition-all group">
+                            <div class="space-y-1">
+                                <span class="text-sm font-bold text-white uppercase tracking-tight">Hide Prompt
+                                    History</span>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Library hidden
+                                    from public view</p>
+                            </div>
+                            <input type="checkbox" id="s_hide_history"
+                                class="w-6 h-6 rounded-lg bg-white/10 border-white/20 text-blue-600 focus:ring-0">
+                        </label>
+                    </div>
+                    <div class="pt-8 border-t border-white/5">
+                        <button onclick="settingsManager.savePrivacy()"
+                            class="px-10 py-4 rounded-2xl bg-blue-600 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">SAVE
+                            PRIVACY</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+
+</html>

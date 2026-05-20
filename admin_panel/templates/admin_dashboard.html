@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptLab | Advanced Moderation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --font-main: 'Inter', sans-serif; 
+            --font-display: 'Outfit', sans-serif;
+            
+            /* Dark Theme (Default) */
+            --bg-primary: #020202;
+            --bg-secondary: rgba(15, 15, 15, 0.7);
+            --text-main: #ffffff;
+            --text-dim: #71717a;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --sidebar-active: rgba(59, 130, 246, 0.1);
+            --footer-bg: #020202;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: rgba(255, 255, 255, 0.8);
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --card-border: rgba(0, 0, 0, 0.08);
+            --sidebar-active: rgba(59, 130, 246, 0.1);
+            --footer-bg: #f8fafc;
+        }
+
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--bg-primary); 
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .glass-card { 
+            background: var(--bg-secondary); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid var(--card-border); 
+        }
+        .sidebar-item.active { background: var(--sidebar-active); border-left: 4px solid #3b82f6; color: #3b82f6; }
+        
+        /* Light Mode Specific Adjustments */
+        [data-theme="light"] .sidebar-item { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+        [data-theme="light"] .glass-card { border: 1px solid rgba(0, 0, 0, 0.1); }
+        [data-theme="light"] aside { border-right: 1px solid rgba(0, 0, 0, 0.1); }
+        [data-theme="light"] .border-b, [data-theme="light"] .border-t { border-color: rgba(0, 0, 0, 0.05); }
+
+        .font-display { font-family: var(--font-display); }
+        .toxicity-low { color: #10b981; border-color: #10b98133; background: #10b9810a; }
+
+        /* Typography */
+        .text-zinc-500, .text-zinc-600 { color: var(--text-dim); }
+        .text-white { color: var(--text-main); }
+        .bg-\[\#020202\] { background-color: var(--bg-primary); }
+
+        @media (max-width: 1024px) {
+            aside {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 85%;
+            }
+            aside.mobile-open { left: 0; }
+            .main-content { padding: 1.5rem !important; }
+            .stat-value { font-size: 2.5rem !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 border-r border-white/5 flex flex-col glass-card">
+        <div class="p-10 border-b border-white/5 flex flex-col gap-6">
+            <div class="flex justify-between items-center">
+                <span class="text-xl lg:text-2xl font-black tracking-tighter font-display uppercase">MODERATION <span class="text-blue-500 italic">CORE</span></span>
+                <button onclick="document.getElementById('sidebar').classList.remove('mobile-open')" class="lg:hidden p-2 bg-white/5 rounded-xl border border-white/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <!-- Relocated Theme Toggle -->
+            <button id="themeToggle" class="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all">
+                <span>Theme Mode</span>
+                <svg id="sunIcon" class="hidden w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zM2 13h2a1 1 0 100-2H2a1 1 0 100 2zm18 0h2a1 1 0 100-2h-2a1 1 0 100 2zM11 2v2a1 1 0 102 0V2a1 1 0 10-2 0zm0 18v2a1 1 0 102 0v-2a1 1 0 10-2 0zM5.99 4.58a1 1 0 10-1.41 1.41l1.41 1.41a1 1 0 101.41-1.41L5.99 4.58zm12.02 12.02a1 1 0 10-1.41 1.41l1.41 1.41a1 1 0 101.41-1.41l-1.41-1.41zm-12.02 0l-1.41 1.41a1 1 0 101.41 1.41l1.41-1.41a1 1 0 10-1.41-1.41zm12.02-12.02l1.41-1.41a1 1 0 10-1.41-1.41l-1.41 1.41a1 1 0 101.41 1.41z"/></svg>
+                <svg id="moonIcon" class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+        </div>
+        <nav class="flex-1 p-6 space-y-3">
+            <button onclick="admin.showTab('overview')" class="sidebar-item active w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Overview
+            </button>
+            <button onclick="admin.showTab('reports')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Reports Queue
+            </button>
+            <button onclick="admin.showTab('users')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                User Control
+            </button>
+            <button onclick="admin.showTab('content')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                Public Content
+            </button>
+            <button onclick="admin.showTab('images')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Gallery Showcase
+            </button>
+            <button onclick="admin.showTab('audit')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Audit Logs
+            </button>
+            <button onclick="admin.showTab('categories')" class="sidebar-item w-full flex items-center gap-4 p-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-zinc-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                Categories
+            </button>
+        </nav>
+        <div class="p-8 border-t border-white/5 space-y-3 sticky bottom-0 z-10" style="background-color: var(--footer-bg);">
+            <button onclick="window.location.href='/'" class="w-full py-4 rounded-[1.5rem] bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">Return to App</button>
+            <button onclick="admin.logout()" class="w-full py-4 rounded-[1.5rem] bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/30 text-zinc-500 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-all">Logout Account</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content flex-1 p-8 lg:p-16 overflow-y-auto w-full">
+        <!-- Mobile Header -->
+        <div class="lg:hidden flex items-center justify-between mb-8 pb-6 border-b border-white/5">
+            <span class="text-lg font-black font-display uppercase tracking-tight">Admin <span class="text-blue-500 italic">Console</span></span>
+            <button onclick="document.getElementById('sidebar').classList.add('mobile-open')" class="p-3 bg-white/5 rounded-2xl border border-white/10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div id="overviewTab" class="space-y-10 lg:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div class="space-y-4">
+                <h1 class="text-4xl lg:text-6xl font-black font-display tracking-tight uppercase">Dashboard <span class="text-blue-500 italic">Core</span></h1>
+                <p class="text-zinc-500 text-sm font-medium">Real-time platform health and moderation analytics.</p>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+                <div class="glass-card p-10 rounded-[3rem] space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total Users</span>
+                        <div class="p-2 bg-blue-500/10 rounded-lg"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+                    </div>
+                    <h3 id="statUsers" class="stat-value text-4xl lg:text-6xl font-black font-display tracking-tighter">--</h3>
+                </div>
+                <div class="glass-card p-10 rounded-[3rem] space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Public Prompts</span>
+                        <div class="p-2 bg-green-500/10 rounded-lg"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>
+                    </div>
+                    <h3 id="statPublic" class="stat-value text-4xl lg:text-6xl font-black font-display tracking-tighter">--</h3>
+                </div>
+                <div class="glass-card p-10 rounded-[3rem] space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Public Images</span>
+                        <div class="p-2 bg-purple-500/10 rounded-lg"><svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+                    </div>
+                    <h3 id="statImages" class="stat-value text-4xl lg:text-6xl font-black font-display tracking-tighter">--</h3>
+                </div>
+                <div class="glass-card p-10 rounded-[3rem] space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pending Reports</span>
+                        <div class="p-2 bg-red-500/10 rounded-lg"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                    </div>
+                    <h3 id="statReports" class="stat-value text-4xl lg:text-6xl font-black font-display tracking-tighter text-blue-500">--</h3>
+                </div>
+            </div>
+
+            <!-- Activity Logs Section -->
+            <div class="space-y-8">
+                <h2 class="text-2xl font-black font-display uppercase tracking-tight">Recent <span class="text-blue-500 italic">Audit Logs</span></h2>
+                <div class="glass-card rounded-[3rem] p-10 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="text-[10px] font-black uppercase text-zinc-600 border-b border-white/5">
+                                <tr>
+                                    <th class="pb-6">Admin</th>
+                                    <th class="pb-6">Action</th>
+                                    <th class="pb-6">Details</th>
+                                    <th class="pb-6">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityLogs" class="text-xs font-bold">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Reports -->
+        <div id="reportsTab" class="hidden space-y-12">
+            <div class="space-y-4">
+                <h1 class="text-5xl font-black font-display tracking-tight uppercase">Reports <span class="text-red-500 italic">Queue</span></h1>
+                <p class="text-zinc-500 text-sm font-medium">Flagged content requiring manual human review.</p>
+            </div>
+            <div id="reportsQueue" class="space-y-6"></div>
+        </div>
+
+        <!-- Tab: Users -->
+        <div id="usersTab" class="hidden space-y-12">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                <div class="space-y-4">
+                    <h1 class="text-3xl lg:text-5xl font-black font-display tracking-tight uppercase">User <span class="text-blue-500 italic">Control</span></h1>
+                    <p class="text-zinc-500 text-sm font-medium">Manage permissions, account statuses, and system access.</p>
+                </div>
+                <button onclick="admin.showAddUserModal()" class="w-full lg:w-auto px-8 py-4 rounded-[1.5rem] bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                    Add New Account
+                </button>
+            </div>
+
+            <div class="glass-card rounded-[3rem] p-10 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="text-[10px] font-black uppercase text-zinc-600 border-b border-white/5">
+                        <tr>
+                            <th class="pb-6">Identity</th>
+                            <th class="pb-6">Roles</th>
+                            <th class="pb-6 text-center">Status</th>
+                            <th class="pb-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList" class="text-xs">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Content -->
+        <div id="contentTab" class="hidden space-y-8">
+            <h1 class="text-3xl lg:text-5xl font-black font-display tracking-tight uppercase">Content <span class="text-blue-500 italic">Discovery</span></h1>
+            <p class="text-zinc-600 text-sm font-medium italic">Safety Note: Encrypted private prompts are physically excluded from this list.</p>
+            <div id="publicPromptsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Tab: Images -->
+        <div id="imagesTab" class="hidden space-y-12">
+            <h1 class="text-5xl font-black font-display tracking-tight uppercase">Gallery <span class="text-blue-500 italic">Moderation</span></h1>
+            <div id="imagesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Tab: Audit -->
+        <div id="auditTab" class="hidden space-y-8">
+            <h1 class="text-3xl lg:text-5xl font-black font-display tracking-tight uppercase">Audit <span class="text-zinc-500 italic">History</span></h1>
+            <div class="glass-card rounded-[3rem] p-10 overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="font-black uppercase text-zinc-600 border-b border-white/5">
+                        <tr>
+                            <th class="pb-6">Admin</th>
+                            <th class="pb-6">Action</th>
+                            <th class="pb-6">Target ID</th>
+                            <th class="pb-6">IP Address</th>
+                            <th class="pb-6">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullAuditLogs">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Categories -->
+        <div id="categoriesTab" class="hidden space-y-12">
+            <div class="flex justify-between items-end">
+                <div class="space-y-4">
+                    <h1 class="text-5xl font-black font-display tracking-tight uppercase">Unified <span class="text-blue-500 italic">Categories</span></h1>
+                    <p class="text-zinc-500 text-sm font-medium">Manage sitewide prompt and artwork categorization.</p>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="admin.showCategoryModal()" class="px-8 py-4 rounded-[1.5rem] bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-widest transition-all">Add Category</button>
+                    <button onclick="admin.loadCategorySuggestions()" class="px-8 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all">View Suggestions</button>
+                </div>
+            </div>
+            
+            <div id="categoriesList" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Suggestions Section -->
+            <div id="suggestionsSection" class="hidden pt-12 border-t border-white/5 space-y-8">
+                <h2 class="text-3xl font-black font-display uppercase tracking-tight">User <span class="text-blue-500 italic">Suggestions</span></h2>
+                <div id="suggestionsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-[100] p-4 lg:p-6 overflow-y-auto">
+        <div class="glass-card w-full max-w-lg p-12 rounded-[3rem] space-y-10 animate-in zoom-in-95 duration-300">
+            <div class="space-y-3">
+                <h3 class="text-3xl font-black font-display uppercase tracking-tight">Create <span class="text-blue-500 italic">Account</span></h3>
+                <p class="text-zinc-500 text-sm font-medium">Provision a new user account with default permissions.</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Username</label>
+                    <input type="text" id="newUsername" autocomplete="off" placeholder="Enter username..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Email Address</label>
+                    <input type="email" id="newEmail" autocomplete="off" placeholder="user@example.com" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Initial Password</label>
+                    <input type="password" id="newPassword" autocomplete="new-password" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all">
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="admin.hideAddUserModal()" class="flex-1 py-5 rounded-[1.5rem] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-[0.2em] transition-all">Cancel</button>
+                <button onclick="admin.createUser()" class="flex-1 py-5 rounded-[1.5rem] bg-blue-600 hover:bg-blue-500 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-blue-500/20">Create User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stylized Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-[200] p-4 lg:p-6 overflow-y-auto">
+        <div class="glass-card w-full max-w-sm p-10 rounded-[3rem] text-center space-y-8 animate-in zoom-in-95 duration-300">
+            <div class="w-20 h-20 mx-auto bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div class="space-y-2">
+                <h3 id="confirmTitle" class="text-2xl font-black font-display uppercase tracking-tight">Are you sure?</h3>
+                <p id="confirmDesc" class="text-zinc-500 text-sm font-medium">This action might be permanent or affect system access.</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button id="confirmBtn" class="w-full py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-red-500/20">Confirm Action</button>
+                <button onclick="admin.hideConfirm()" class="w-full py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] transition-all">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const admin = {
+            activeTab: 'overview',
+            showTab: (tabId) => {
+                ['overview', 'reports', 'users', 'content', 'images', 'audit', 'categories'].forEach(t => {
+                    document.getElementById(`${t}Tab`).classList.toggle('hidden', t !== tabId);
+                });
+                document.querySelectorAll('.sidebar-item').forEach(btn => {
+                    const isTarget = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId);
+                    btn.classList.toggle('bg-blue-600', isTarget);
+                    btn.classList.toggle('text-white', isTarget);
+                    btn.classList.toggle('text-zinc-500', !isTarget);
+                });
+                
+                if (tabId === 'overview') admin.loadStats();
+                if (tabId === 'reports') admin.loadReports();
+                if (tabId === 'users') admin.loadUsers();
+                if (tabId === 'content') admin.loadContent();
+                if (tabId === 'images') admin.loadImages();
+                if (tabId === 'audit') admin.loadAuditLogs();
+                if (tabId === 'categories') admin.loadCategories();
+            },
+
+            showConfirm: (title, desc, onConfirm) => {
+                document.getElementById("confirmTitle").innerText = title;
+                document.getElementById("confirmDesc").innerText = desc;
+                const modal = document.getElementById("confirmModal");
+                const btn = document.getElementById("confirmBtn");
+                
+                modal.classList.replace('hidden', 'flex');
+                btn.onclick = () => {
+                    onConfirm();
+                    admin.hideConfirm();
+                };
+            },
+
+            showToast: (message, type = 'info') => {
+                const toast = document.createElement('div');
+                const colors = {
+                    success: 'text-green-400 border-green-500/30 bg-green-500/10',
+                    error: 'text-red-400 border-red-500/30 bg-red-500/10',
+                    info: 'text-blue-400 border-blue-500/30 bg-blue-500/10'
+                };
+                toast.className = `fixed bottom-8 right-8 z-[300] px-6 py-4 rounded-2xl border backdrop-blur-xl animate-in slide-in-from-bottom-10 duration-500 ${colors[type]}`;
+                toast.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('animate-out', 'fade-out', 'slide-out-to-bottom-10');
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000);
+            },
+
+            hideConfirm: () => document.getElementById("confirmModal").classList.replace('flex', 'hidden'),
+
+            loadUsers: async () => {
+                const res = await fetch('/custom-admin/api/users/');
+                const data = await res.json();
+                const list = document.getElementById("usersList");
+                list.innerHTML = data.users.map(u => `
+                    <tr class="border-b border-white/5 hover:bg-white/[0.01] transition-all group">
+                        <td class="py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 font-black">${u.username[0].toUpperCase()}</div>
+                                <div class="space-y-0.5">
+                                    <div class="font-black text-white text-sm tracking-tight">${u.username}</div>
+                                    <div class="text-zinc-500 font-medium text-[10px]">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-6">
+                            <div class="flex gap-2">
+                                <button onclick="admin.toggleUserRole(${u.id}, 'TOGGLE_STAFF')" class="px-3 py-1.5 rounded-lg border ${u.is_staff ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-zinc-500/5 border-white/5 text-zinc-600'} text-[9px] font-black uppercase tracking-widest transition-all">Staff</button>
+                                <button onclick="admin.toggleUserRole(${u.id}, 'TOGGLE_SUPERUSER')" class="px-3 py-1.5 rounded-lg border ${u.is_superuser ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-zinc-500/5 border-white/5 text-zinc-600'} text-[9px] font-black uppercase tracking-widest transition-all">Super</button>
+                            </div>
+                        </td>
+                        <td class="py-6 text-center">
+                            <button onclick="admin.toggleUserRole(${u.id}, 'TOGGLE_ACTIVE')" class="px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${u.is_active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} transition-all">
+                                ${u.is_active ? 'Active' : 'Blocked'}
+                            </button>
+                        </td>
+                        <td class="py-6 text-right">
+                            <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                                <button onclick="admin.deleteUser(${u.id})" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            showAddUserModal: () => {
+                document.getElementById("newUsername").value = '';
+                document.getElementById("newEmail").value = '';
+                document.getElementById("newPassword").value = '';
+                document.getElementById("addUserModal").classList.replace('hidden', 'flex');
+            },
+            hideAddUserModal: () => document.getElementById("addUserModal").classList.replace('flex', 'hidden'),
+
+            createUser: async () => {
+                const username = document.getElementById("newUsername").value;
+                const email = document.getElementById("newEmail").value;
+                const password = document.getElementById("newPassword").value;
+                
+                if (!username || !password) return admin.showToast("Required fields missing", "error");
+
+                const res = await fetch('/custom-admin/api/users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'CREATE', username, email, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    admin.hideAddUserModal();
+                    admin.loadUsers();
+                } else admin.showToast(data.error, "error");
+            },
+
+            toggleUserRole: async (userId, action) => {
+                const res = await fetch('/custom-admin/api/users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, action })
+                });
+                const data = await res.json();
+                if (data.success) admin.loadUsers();
+                else admin.showToast(data.error, "error");
+            },
+
+            deleteUser: async (userId) => {
+                admin.showConfirm(
+                    "DELETE ACCOUNT",
+                    "Permanently delete this user account? This cannot be undone.",
+                    async () => {
+                        const res = await fetch('/custom-admin/api/users/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: userId, action: 'DELETE' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            admin.loadUsers();
+                            admin.showToast("User deleted successfully", "success");
+                        } else {
+                            admin.showToast(data.error, "error");
+                        }
+                    }
+                );
+            },
+
+            logout: () => {
+                admin.showConfirm(
+                    "LOGOUT SESSION",
+                    "Are you sure you want to log out of the admin panel?",
+                    () => { window.location.href = '/accounts/logout/'; }
+                );
+            },
+
+            loadStats: async () => {
+                try {
+                    const res = await fetch('/custom-admin/api/stats/');
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('statUsers').innerText = data.stats.users;
+                        document.getElementById('statPublic').innerText = data.stats.public_prompts;
+                        document.getElementById('statImages').innerText = data.stats.public_images;
+                        document.getElementById('statReports').innerText = data.stats.reports;
+
+                        const logBody = document.getElementById("activityLogs");
+                        logBody.innerHTML = data.recent_activity.map(log => `
+                            <tr class="border-b border-white/5 group hover:bg-white/[0.02] transition-all">
+                                <td class="py-6 text-blue-400">${log.admin}</td>
+                                <td class="py-6 uppercase tracking-wider">${log.action}</td>
+                                <td class="py-6 text-zinc-500 font-medium">${log.details}</td>
+                                <td class="py-6 text-zinc-600 italic">${log.time}</td>
+                            </tr>
+                        `).join('');
+                    }
+                } catch (err) { console.error("Stats load failed", err); }
+            },
+
+            loadReports: async () => {
+                const res = await fetch('/custom-admin/api/reports/');
+                const data = await res.json();
+                const queue = document.getElementById("reportsQueue");
+                
+                if (!data.reports.length) {
+                    queue.innerHTML = '<div class="text-center py-20 text-zinc-600 font-black uppercase tracking-widest">Queue is clear. Excellent work.</div>';
+                    return;
+                }
+
+                queue.innerHTML = data.reports.map(r => {
+                    const toxClass = r.ai_score > 0.7 ? 'toxicity-high' : (r.ai_score > 0.4 ? 'toxicity-med' : 'toxicity-low');
+                    return `
+                        <div class="glass-card p-10 rounded-[3rem] space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">${r.type} Report</span>
+                                        <span class="text-zinc-600 text-[10px] font-bold">Reported by <span class="text-blue-400 font-black">${r.reporter}</span> • ${r.created_at}</span>
+                                    </div>
+                                    <h4 class="text-2xl font-black font-display tracking-tight">${r.target.title || 'Discussion Comment'}</h4>
+                                    <p class="text-sm text-zinc-400 font-medium italic">"Reason: ${r.reason}"</p>
+                                </div>
+                                <div class="px-6 py-4 rounded-3xl border ${toxClass} space-y-1 text-center">
+                                    <div class="text-[9px] font-black uppercase tracking-widest">AI Safety Score</div>
+                                    <div class="text-2xl font-black font-display">${Math.round(r.ai_score * 100)}%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-black/40 border border-white/5 rounded-3xl p-8 space-y-4">
+                                <div class="flex justify-between items-center text-[10px] font-black uppercase text-zinc-600 tracking-widest">
+                                    <span>Content Preview</span>
+                                    <span class="text-blue-500">By ${r.target.creator}</span>
+                                </div>
+                                <p class="text-sm text-zinc-300 font-medium leading-relaxed line-clamp-3">${r.target.content}</p>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <button onclick="admin.moderate('${r.type}', ${r.target.id}, 'DELETE', ${r.id})" class="flex-1 py-4 rounded-[1.5rem] bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-400 transition-all shadow-lg shadow-red-500/20">Remove Content</button>
+                                ${r.type === 'PROMPT' ? `<button onclick="admin.moderate('PROMPT', ${r.target.id}, 'FORCE_PRIVATE', ${r.id})" class="flex-1 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all">Force Private</button>` : ''}
+                                <button onclick="admin.resolveReport(${r.id}, 'DISMISS')" class="px-10 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white transition-all">Dismiss</button>
+                            </div>
+                            
+                            <div class="pt-6 border-t border-white/5 flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-blue-500">AI Suggestion: <span class="text-zinc-400 italic">${r.ai_suggestion}</span></span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            moderate: async (type, id, action, reportId) => {
+                admin.showConfirm(
+                    "MODERATION ACTION",
+                    `Are you sure you want to ${action.replace('_', ' ').toLowerCase()} this ${type.toLowerCase()}?`,
+                    async () => {
+                        try {
+                            const res = await fetch('/custom-admin/api/moderate/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                                body: JSON.stringify({ target_type: type, target_id: id, action })
+                            });
+                            if (reportId) await admin.resolveReport(reportId, 'RESOLVE');
+                            admin.loadReports();
+                            admin.loadContent();
+                        } catch (err) { console.error("Action failed.", err); }
+                    }
+                );
+            },
+
+            resolveReport: async (reportId, action) => {
+                await fetch('/custom-admin/api/reports/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ report_id: reportId, action })
+                });
+                admin.loadReports();
+            },
+
+            loadContent: async () => {
+                const res = await fetch('/custom-admin/api/prompts/');
+                const data = await res.json();
+                const grid = document.getElementById("publicPromptsList");
+                grid.innerHTML = data.prompts.map(p => `
+                    <div class="glass-card p-8 rounded-[2.5rem] space-y-6 group hover:border-blue-500/20 transition-all">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-500">${p.category}</span>
+                            <span class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">${p.created}</span>
+                        </div>
+                        <h4 class="text-xl font-black font-display tracking-tight">${p.title}</h4>
+                        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Creator: <span class="text-white">${p.creator}</span></div>
+                        <div class="flex gap-3">
+                            <button onclick="admin.moderate('PROMPT', ${p.id}, 'DELETE')" class="flex-1 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[9px] font-black uppercase tracking-widest transition-all">Delete</button>
+                            <button onclick="admin.moderate('PROMPT', ${p.id}, 'FORCE_PRIVATE')" class="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-zinc-500 text-[9px] font-black uppercase tracking-widest transition-all">Hide</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            loadImages: async () => {
+                try {
+                    const res = await fetch('/custom-admin/api/images/');
+                    const data = await res.json();
+                    const grid = document.getElementById('imagesGrid');
+                    grid.innerHTML = data.images.map(img => `
+                        <div class="glass-card overflow-hidden rounded-[2.5rem] group border border-white/5 hover:border-blue-500/30 transition-all">
+                            <img src="${img.url}" class="w-full h-48 object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div class="p-6 space-y-4">
+                                <div class="space-y-1">
+                                    <h4 class="text-sm font-black uppercase truncate">${img.title}</h4>
+                                    <p class="text-[10px] text-zinc-500 font-bold uppercase">by ${img.creator}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="admin.moderateImage(${img.id}, 'HIDE')" class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-zinc-800 text-[8px] font-black uppercase tracking-widest transition-all">Hide</button>
+                                    <button onclick="admin.moderateImage(${img.id}, 'DELETE')" class="flex-1 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white text-[8px] font-black uppercase tracking-widest transition-all">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (err) {}
+            },
+
+            moderateImage: async (id, action) => {
+                admin.showConfirm(
+                    `${action} IMAGE?`,
+                    `Are you sure you want to ${action.toLowerCase()} this image? This action will affect its visibility in the public gallery.`,
+                    async () => {
+                        try {
+                            const res = await fetch('/custom-admin/api/moderate/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ target_type: 'AI_IMAGE', target_id: id, action: action })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                admin.loadImages();
+                                admin.loadStats();
+                                admin.showToast(`Image ${action.toLowerCase()}d`, "success");
+                            } else {
+                                admin.showToast(data.error, "error");
+                            }
+                        } catch (err) {
+                            console.error("Moderation failed", err);
+                        }
+                    }
+                );
+            },
+
+            loadAuditLogs: async () => {
+                const res = await fetch('/custom-admin/api/stats/');
+                const data = await res.json();
+                const logBody = document.getElementById("fullAuditLogs");
+                logBody.innerHTML = data.recent_activity.map(log => `
+                    <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-all">
+                        <td class="py-6 font-bold text-blue-400">${log.admin}</td>
+                        <td class="py-6 uppercase tracking-widest font-black text-zinc-300">${log.action}</td>
+                        <td class="py-6 font-medium text-zinc-500">ID: ${log.id || 'N/A'}</td>
+                        <td class="py-6 text-zinc-600 italic">Hidden</td>
+                        <td class="py-6 text-zinc-500 font-bold">${log.time}</td>
+                    </tr>
+                `).join('');
+            },
+
+            loadCategories: async () => {
+                const res = await fetch('/custom-admin/api/categories/');
+                const data = await res.json();
+                const list = document.getElementById("categoriesList");
+                list.innerHTML = data.categories.map(cat => `
+                    <div class="glass-card p-10 rounded-[3rem] space-y-6">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-4">
+                                <div class="p-4 bg-blue-500/10 rounded-2xl text-blue-400 font-black">
+                                    ${cat.icon}
+                                </div>
+                                <div class="space-y-1">
+                                    <h4 class="text-xl font-black uppercase tracking-tight text-white">${cat.name}</h4>
+                                    <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Slug: ${cat.slug}</p>
+                                </div>
+                            </div>
+                            <button onclick="admin.deleteCategory(${cat.id})" class="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">Subcategories</div>
+                            <div class="flex flex-wrap gap-2">
+                                ${cat.subcategories.map(sub => `<span class="px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg text-[9px] font-bold text-zinc-400">${sub.name}</span>`).join('')}
+                                <button onclick="admin.showAddSubModal(${cat.id}, '${cat.name}')" class="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[9px] font-black text-blue-400 uppercase tracking-widest">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                admin.suggestions = data.suggestions;
+            },
+
+            showAddSubModal: (catId, catName) => {
+                admin.showConfirm(`Add Subcategory to ${catName}`, "Enter the name for the new subcategory:", () => {
+                    const name = prompt("Subcategory Name:");
+                    if (name) admin.createSubcategory(catId, name);
+                });
+            },
+
+            createSubcategory: async (catId, name) => {
+                const res = await fetch('/custom-admin/api/categories/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'CREATE_SUBCATEGORY', category_id: catId, name })
+                });
+                const data = await res.json();
+                if (data.success) admin.loadCategories();
+            },
+
+            showCategoryModal: () => {
+                const name = prompt("Category Name:");
+                if (name) {
+                    const icon = prompt("Icon Name (e.g. Brush, Code, Grid):", "Grid");
+                    admin.createCategory(name, icon);
+                }
+            },
+
+            createCategory: async (name, icon) => {
+                const res = await fetch('/custom-admin/api/categories/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'CREATE_CATEGORY', name, icon })
+                });
+                const data = await res.json();
+                if (data.success) admin.loadCategories();
+            },
+
+            deleteCategory: (id) => {
+                admin.showConfirm("Delete Category?", "All associated subcategories will be removed.", async () => {
+                    await fetch('/custom-admin/api/categories/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'DELETE_CATEGORY', id })
+                    });
+                    admin.loadCategories();
+                });
+            },
+
+            loadCategorySuggestions: () => {
+                const sec = document.getElementById("suggestionsSection");
+                sec.classList.remove('hidden');
+                const list = document.getElementById("suggestionsList");
+                list.innerHTML = admin.suggestions.map(s => `
+                    <div class="glass-card p-8 rounded-[2rem] space-y-4">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-black text-white uppercase tracking-tight">${s.name}</h4>
+                            <span class="text-[8px] text-zinc-600 font-bold uppercase">${s.created}</span>
+                        </div>
+                        <p class="text-[11px] text-zinc-500 italic">"${s.reason}"</p>
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="admin.moderateSuggestion(${s.id}, 'APPROVED')" class="flex-1 py-3 rounded-xl bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest">Approve</button>
+                            <button onclick="admin.moderateSuggestion(${s.id}, 'REJECTED')" class="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 text-[8px] font-black uppercase tracking-widest">Reject</button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="col-span-full py-10 text-center text-zinc-600 text-[10px] font-black uppercase tracking-widest italic">No pending suggestions.</div>';
+                window.scrollTo({ top: sec.offsetTop - 100, behavior: 'smooth' });
+            },
+
+            moderateSuggestion: async (id, status) => {
+                await fetch('/custom-admin/api/categories/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'MODERATE_SUGGESTION', id, status })
+                });
+                admin.loadCategories();
+                admin.loadCategorySuggestions();
+            }
+        };
+
+        // Theme Management
+        const themeManager = {
+            init: () => {
+                const savedTheme = localStorage.getItem('promptlab-theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                themeManager.updateIcons(savedTheme);
+                
+                const toggleBtn = document.getElementById('themeToggle');
+                if (toggleBtn) {
+                    toggleBtn.onclick = () => {
+                        const currentTheme = document.documentElement.getAttribute('data-theme');
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('promptlab-theme', newTheme);
+                        themeManager.updateIcons(newTheme);
+                    };
+                }
+            },
+            updateIcons: (theme) => {
+                const sun = document.getElementById('sunIcon');
+                const moon = document.getElementById('moonIcon');
+                if (sun && moon) {
+                    if (theme === 'light') {
+                        sun.classList.remove('hidden');
+                        moon.classList.add('hidden');
+                    } else {
+                        sun.classList.add('hidden');
+                        moon.classList.remove('hidden');
+                    }
+                }
+            }
+        };
+        themeManager.init();
+
+        // Init
+        admin.loadStats();
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            const addModal = document.getElementById("addUserModal");
+            const confModal = document.getElementById("confirmModal");
+            const isAddVisible = !addModal.classList.contains('hidden');
+            const isConfVisible = !confModal.classList.contains('hidden');
+
+            if (e.key === 'Escape') {
+                if (isAddVisible) admin.hideAddUserModal();
+                if (isConfVisible) admin.hideConfirm();
+            }
+
+            if (e.key === 'Enter') {
+                if (isAddVisible) {
+                    e.preventDefault();
+                    admin.createUser();
+                } else if (isConfVisible) {
+                    e.preventDefault();
+                    document.getElementById("confirmBtn").click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
